@@ -1,0 +1,11 @@
+%% Run tranining simulation
+vsat = 150;
+lqrsat = 200;
+noisePower = 1e3;
+time = 
+sim('train');
+%% Create net
+net = feedforwardnet([25]);
+net = train(net, input', control');
+%% create simulink block
+gensim(net)
