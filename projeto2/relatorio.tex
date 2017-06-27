@@ -128,16 +128,16 @@ Para os propósitos desse trabalho treinamos a rede neural utilizando uma combin
 
 Para as proximidades do ponto de equilíbrio foi utilizada uma combinação de controladores PD e um ganho de feedfoward no controle de posição do carrinho combinado com um controlador LQR que foca no controle do ângulo $\theta$. Essa estrutura de controle é a proposta nos demos do Matlab e apresenta um resultado bastante satisfatório.
 
-Para levar o sistema ao ponto de equilíbrio um controlador bastante simples foi implementado: quando o sistema se encontra longe do ponto buscado $|\theta| > \frac{pi}{3}$ aplica-se uma força de intensidade constante e sinal idêntico à velocidade ângular $\dot{\theta}$ até que o pêndulo chegue a região de operação desejada.
+Para levar o sistema ao ponto de equilíbrio um controlador bastante simples foi implementado: quando o sistema se encontra longe do ponto buscado $|\theta| > \frac{\pi}{3}$ aplica-se uma força de intensidade constante e sinal idêntico à velocidade angular $\dot{\theta}$ até que o pêndulo chegue a região de operação desejada.
 
 Foi montada então a estrutura vista na figura \ref{fig:train} em que a saída de vários dos controladores foi saturada e simulamos esse sistema para uma referência de posição que muda aleatoriamente a cada 10 segundos e para condições iniciais de $\theta$ variando de $0$ a $2\pi$ com passos de $\frac{\pi}{18}$, cada uma dessas simulações tem uma duração de 50 segundos. Alguns dos resultados dessa simulações podem ser visto na figura \ref{fig:trainresults}
 
 \begin{figure}[H]
 	\centering
-	\includegraphics[width=0.7\linewidth]{train}
+	\includegraphics[width=\linewidth]{train}
 	\caption{Implementação Simulink do controlador para treinamento}
 	\label{fig:train}
-\end{figure}s are \quad and \qqua
+\end{figure}
 
 %TODO Exportar e gerar subfigures
 \begin{figure}[H]
@@ -151,19 +151,35 @@ Foi montada então a estrutura vista na figura \ref{fig:train} em que a saída d
 Exportamos como dados de entrada para o treinamento a referência e o erro em posição, a velocidade linear do carrinho, a velocidade e a posição angular do mesmo e o valor absoluto da posição angular normalizada para valores entre $-\pi$ e $\pi$. Esse último dado é utilizado como chave para a troca entre os controladores e por ser uma função complexa da posição angular escolhemos exportá-la afim de facilitar o treinamento da rede.
 Como saída exportamos o sinal de controle: a força $F$ aplicada no carrinho.
 
-Como nos primeiros treinamentos notamos que a rede estava tendo dificuldades para trabalhar com ângulos iniciais na faixa $\frac{pi}{2}$ à $\frac{3pi}{2}$ então aumentamos nossos dados de treinamento para incluir mais simulações saindo de condições iniciais nesse intervalo, com um passo de $\frac{\pi}{12}$ com uma duração de 20 segundos.
+Como nos primeiros treinamentos notamos que a rede estava tendo dificuldades para trabalhar com ângulos iniciais na faixa $\frac{\pi}{2}$ à $\frac{3\pi}{2}$ então aumentamos nossos dados de treinamento para incluir mais simulações saindo de condições iniciais nesse intervalo, com um passo de $\frac{\pi}{12}$ com uma duração de 20 segundos.
 
-\section{A Rede}
-Ou rede sustentabilidade é um partido político liderado por Marina Silva.
+\section{Rede Neural}
 
-6 45 4 1
-duas hidden layers
-Treinado com Bayesian Regularization
-https://www.mathworks.com/help/nnet/ug/improve-neural-network-generalization-and-avoid-overfitting.html
-Umas 1000 epochs, erro de 0.7
+Os dados obtidos acima foram utilizados para treinar uma rede neural do tipo \textit{feedfoward} com duas camadas ocultas, a primeira de 45 neurônios e a segunda de 4. Essa configuração foi escolhida pois ela apresentou bons resultados rapidamente (com menos treinamento) e pois ela se aproxima da configuração do controlador original, que possuí saídas intermediárias (sinais de controle em posição, ângulo e de ajuste de ângulo) que são combinadas para gerar a saída final do controlador.
+
+Para evitar problemas de overfitting que foram encontrados inicialmente utilizamos o algorítimo de Bayesian Regularization para treinar a rede, além interromper o treinamento, alterar os dados e retomar o mesmo. O treinamento completo levou em torno de 10 minutos para ser executado passando por em torno de 1500 epochs. A função performance final atingida foi de aproximadamente 0.7, valor ainda relativamente alto. Testes empíricos mostraram que continuar treinando a rede após esse ponto piorava o resultado final.
+
+Montamos então nosso novo controlador por rede neural cujo esquema de simulação pode ser visto na figura \ref{fig:net}.
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=\linewidth]{net}
+	\caption{Implementação Simulink do controlador por rede neural}
+	\label{fig:net}
+\end{figure}
 
 \section{Resultados}
-DEU BOM
+O sistema obtido foi simulado com referencias de posição que mudavam aleatoriamente de 10 em 10 segundos e ângulos iniciais variando de $0$ a $2\pi$ com passo de $\frac{\pi}{6}$. Tomamos cuidado para evitar que os sinais de validação fossem os mesmos que os utilizados no treinamento.
+Os resultados dessas simulações podem ser vistos na figura \ref{fig:netresults}.
+%TODO FIGURA
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.7\linewidth]{netresults}
+	\caption{Resultados da simulação de validação}
+	\label{fig:netresults}
+\end{figure}
+
+O controlador proposto apresentou bons resultados, conseguindo controlar satisfatoriamente o sistema analisado.
 \pagebreak
 
 \end{document}
